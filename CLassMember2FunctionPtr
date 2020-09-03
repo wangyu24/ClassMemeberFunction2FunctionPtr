@@ -1,0 +1,33 @@
+#include <iostream>
+
+template <typename T>
+struct Callback;
+
+template <typename Ret, typename... Params>
+struct Callback<Ret(Params...)> {
+    template <typename... Args>
+    static Ret callback(Args... args) { return func(args...); }
+    static std::function<Ret(Params...)> func;
+};
+// Initialize the static member.
+template <typename Ret, typename... Params>
+std::function<Ret(Params...)> Callback<Ret(Params...)>::func;
+
+
+class foo {
+public:
+    void print(int i, int j) {
+        std::cout << "hello"<< i << " " << j << std::endl;
+    }
+    void call() {
+        Callback<void(int,int)>::func = std::bind(&foo::print, this, std::placeholders::_1, std::placeholders::_2);
+        void (*c_func)(int,int) = static_cast<decltype(c_func)>(Callback<void(int, int)>::callback);
+        c_func(10, 20);
+    }
+};
+
+int main() {
+    foo f;
+    f.call();
+    return 0;
+}
